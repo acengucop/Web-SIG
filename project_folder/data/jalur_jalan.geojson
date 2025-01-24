@@ -1,0 +1,19 @@
+{
+    "type": "FeatureCollection",
+    "features": [
+        {
+            "type": "Feature",
+            "geometry": {
+                "type": "LineString",
+                "coordinates": [
+                    [101.4478, 0.5071],
+                    [101.4507, 0.5083],
+                    [101.4533, 0.5100]
+                ]
+            },
+            "properties": {
+                "name": "Jalur Utama"
+            }
+        }
+    ]
+}

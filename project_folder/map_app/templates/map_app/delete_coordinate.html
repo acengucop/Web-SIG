@@ -1,0 +1,323 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Hapus Koordinat</title>
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/animate.css/4.1.1/animate.min.css" rel="stylesheet">
+    <style>
+        :root {
+            --primary: #3b82f6;
+            --secondary: #1d4ed8;
+            --accent: #60a5fa;
+            --success: #22c55e;
+            --danger: #ef4444;
+            --danger-hover: #dc2626;
+            --background: #f8fafc;
+            --text: #1e293b;
+            --gradient: linear-gradient(135deg, #ef4444, #b91c1c);
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: 'Segoe UI', system-ui, sans-serif;
+        }
+
+        body {
+            background: var(--background);
+            color: var(--text);
+            min-height: 100vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            perspective: 1000px;
+            overflow: hidden;
+            background: radial-gradient(circle at center, #fee2e2, var(--background));
+        }
+
+        .delete-container {
+            background: rgba(255, 255, 255, 0.95);
+            padding: 3rem;
+            border-radius: 24px;
+            box-shadow: 
+                0 20px 50px rgba(239, 68, 68, 0.2),
+                0 10px 20px rgba(0, 0, 0, 0.1);
+            width: 90%;
+            max-width: 500px;
+            text-align: center;
+            transform-style: preserve-3d;
+            animation: floatIn 1s ease-out;
+            position: relative;
+            backdrop-filter: blur(10px);
+            border: 1px solid rgba(239, 68, 68, 0.1);
+        }
+
+        .emoji-container {
+            position: relative;
+            height: 6rem;
+            perspective: 1000px;
+            transform-style: preserve-3d;
+        }
+
+        .emoji {
+            font-size: 5rem;
+            position: absolute;
+            width: 100%;
+            top: 0;
+            left: 0;
+            backface-visibility: hidden;
+            transition: transform 0.8s cubic-bezier(0.4, 0, 0.2, 1);
+        }
+
+        .emoji-sad {
+            transform: rotateY(0deg);
+        }
+
+        .emoji-happy {
+            transform: rotateY(180deg);
+        }
+
+        .delete-container.cancelled .emoji-sad {
+            transform: rotateY(180deg);
+        }
+
+        .delete-container.cancelled .emoji-happy {
+            transform: rotateY(0deg);
+        }
+
+        h1 {
+            background: var(--gradient);
+            -webkit-background-clip: text;
+            background-clip: text;
+            -webkit-text-fill-color: transparent;
+            font-size: 2rem;
+            margin: 1.5rem 0;
+            position: relative;
+        }
+
+        .delete-message {
+            font-size: 1.2rem;
+            margin: 1.5rem 0;
+            color: #64748b;
+            transform: translateZ(20px);
+        }
+
+        .highlight {
+            color: var(--danger);
+            font-weight: 600;
+            display: inline-block;
+            position: relative;
+            padding: 0 5px;
+        }
+
+        .highlight::after {
+            content: '';
+            position: absolute;
+            bottom: 0;
+            left: 0;
+            width: 100%;
+            height: 2px;
+            background: var(--gradient);
+            transform: scaleX(0);
+            transition: transform 0.3s ease;
+        }
+
+        .highlight:hover::after {
+            transform: scaleX(1);
+        }
+
+        .button-group {
+            display: flex;
+            gap: 1.5rem;
+            justify-content: center;
+            margin-top: 2.5rem;
+            transform-style: preserve-3d;
+        }
+
+        .btn {
+            padding: 1rem 2.5rem;
+            border: none;
+            border-radius: 12px;
+            font-size: 1.1rem;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+            position: relative;
+            overflow: hidden;
+            transform-style: preserve-3d;
+        }
+
+        .btn::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(255, 255, 255, 0.1);
+            transform: translateX(-100%);
+            transition: transform 0.3s ease;
+        }
+
+        .btn:hover::before {
+            transform: translateX(0);
+        }
+
+        .btn-delete {
+            background: var(--gradient);
+            color: white;
+            box-shadow: 0 4px 15px rgba(239, 68, 68, 0.3);
+        }
+
+        .btn-delete:hover {
+            transform: translateY(-3px) translateZ(10px);
+            box-shadow: 0 6px 20px rgba(239, 68, 68, 0.4);
+        }
+
+        .btn-cancel {
+            background: white;
+            color: var(--text);
+            border: 2px solid #e2e8f0;
+            text-decoration: none;
+            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1);
+        }
+
+        .btn-cancel:hover {
+            transform: translateY(-3px) translateZ(10px);
+            box-shadow: 0 6px 20px rgba(0, 0, 0, 0.15);
+            border-color: #cbd5e1;
+        }
+
+        @keyframes floatIn {
+            0% {
+                opacity: 0;
+                transform: translateY(40px) rotateX(10deg);
+            }
+            100% {
+                opacity: 1;
+                transform: translateY(0) rotateX(0);
+            }
+        }
+
+        @keyframes float {
+            0%, 100% { transform: translateY(0); }
+            50% { transform: translateY(-10px); }
+        }
+
+        @keyframes shake {
+            0%, 100% { transform: translateX(0); }
+            25% { transform: translateX(-5px); }
+            75% { transform: translateX(5px); }
+        }
+
+        .particles-container {
+            position: fixed;
+            width: 100%;
+            height: 100%;
+            pointer-events: none;
+        }
+
+        .particle {
+            position: absolute;
+            pointer-events: none;
+            animation: float 1s ease-in forwards;
+        }
+
+        @keyframes float {
+            0% {
+                transform: translateY(0) rotate(0);
+                opacity: 1;
+            }
+            100% {
+                transform: translateY(-100px) rotate(360deg);
+                opacity: 0;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="particles-container"></div>
+    <div class="delete-container">
+        <div class="emoji-container">
+            <div class="emoji emoji-sad">😢</div>
+            <div class="emoji emoji-happy">😊</div>
+        </div>
+        <h1>Konfirmasi Penghapusan</h1>
+        <p class="delete-message">
+            Apakah Anda yakin ingin menghapus <span class="highlight">"{{ coordinate.nama }}"</span>?<br>
+            Tindakan ini tidak dapat dibatalkan.
+        </p>
+        <form method="POST">
+            {% csrf_token %}
+            <div class="button-group">
+                <button type="submit" class="btn btn-delete">Ya, Hapus 🗑️</button>
+                <a href="/" class="btn btn-cancel">Batal ↩️</a>
+            </div>
+        </form>
+    </div>
+
+    <script>
+        const container = document.querySelector('.delete-container');
+        const deleteBtn = document.querySelector('.btn-delete');
+        const cancelBtn = document.querySelector('.btn-cancel');
+        const emojiSad = document.querySelector('.emoji-sad');
+        const particlesContainer = document.querySelector('.particles-container');
+
+        // Emoji reactions
+        deleteBtn.addEventListener('mouseover', () => {
+            emojiSad.textContent = '😭';
+        });
+
+        deleteBtn.addEventListener('mouseout', () => {
+            emojiSad.textContent = '😢';
+        });
+
+        // Cancel button effects
+        cancelBtn.addEventListener('mouseover', () => {
+            container.classList.add('cancelled');
+            createParticles('🎉');
+        });
+
+        cancelBtn.addEventListener('mouseout', () => {
+            container.classList.remove('cancelled');
+        });
+
+        // Create celebration particles
+        function createParticles(emoji) {
+            for (let i = 0; i < 10; i++) {
+                const particle = document.createElement('div');
+                particle.className = 'particle';
+                particle.textContent = emoji;
+                particle.style.left = Math.random() * 100 + 'vw';
+                particle.style.top = Math.random() * 100 + 'vh';
+                particle.style.fontSize = (Math.random() * 20 + 10) + 'px';
+                particlesContainer.appendChild(particle);
+
+                particle.addEventListener('animationend', () => {
+                    particle.remove();
+                });
+            }
+        }
+
+        // Add confirmation dialog with 3D effect
+        document.querySelector('form').addEventListener('submit', (e) => {
+            if (!confirm('Apakah Anda benar-benar yakin? Data akan dihapus permanen.')) {
+                e.preventDefault();
+                container.classList.add('cancelled');
+                setTimeout(() => container.classList.remove('cancelled'), 2000);
+            } else {
+                createParticles('💔');
+            }
+        });
+
+        // Hover effect for highlighted text
+        const highlight = document.querySelector('.highlight');
+        highlight.addEventListener('mouseover', () => {
+            emojiSad.textContent = '🥺';
+        });
+        highlight.addEventListener('mouseout', () => {
+            emojiSad.textContent = '😢';
+        });
+    </script>
+</body>
+</html>
