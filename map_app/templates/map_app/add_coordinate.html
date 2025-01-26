@@ -1,0 +1,309 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>{{ page_title }}</title>
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/animate.css/4.1.1/animate.min.css" rel="stylesheet">
+    <style>
+        :root {
+            --primary: #3b82f6;
+            --secondary: #1d4ed8;
+            --accent: #60a5fa;
+            --success: #22c55e;
+            --danger: #ef4444;
+            --background: #f8fafc;
+            --text: #1e293b;
+            --gradient: linear-gradient(135deg, #3b82f6, #1d4ed8);
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: 'Segoe UI', system-ui, sans-serif;
+        }
+
+        body {
+            background: var(--background);
+            color: var(--text);
+            line-height: 1.6;
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            perspective: 1000px;
+            overflow-x: hidden;
+            background: radial-gradient(circle at top right, #dbeafe, var(--background));
+        }
+
+        .form-container {
+            background: rgba(255, 255, 255, 0.95);
+            padding: 2.5rem;
+            border-radius: 20px;
+            box-shadow: 
+                0 10px 30px rgba(0,0,0,0.1),
+                0 1px 8px rgba(0,0,0,0.05);
+            width: 100%;
+            max-width: 550px;
+            transform-style: preserve-3d;
+            animation: float 6s ease-in-out infinite;
+            backdrop-filter: blur(10px);
+            border: 1px solid rgba(255, 255, 255, 0.2);
+        }
+
+        @keyframes float {
+            0%, 100% { transform: translateY(0) rotateX(0deg); }
+            50% { transform: translateY(-10px) rotateX(2deg); }
+        }
+
+        h1 {
+            background: var(--gradient);
+            -webkit-background-clip: text;
+            background-clip: text;
+            -webkit-text-fill-color: transparent;
+            color: transparent;
+            font-size: 2.2rem;
+            margin-bottom: 2rem;
+            text-align: center;
+            position: relative;
+            /* Hapus text-shadow karena bisa konflik dengan efek gradient */
+        }
+
+        h1::after {
+            content: "📝";
+            position: absolute;
+            right: -40px;
+            top: 0;
+            animation: wave 2s infinite;
+        }
+
+        @keyframes wave {
+            0%, 100% { transform: rotate(0deg); }
+            50% { transform: rotate(15deg); }
+        }
+
+        .form-group {
+            margin-bottom: 1.8rem;
+            position: relative;
+            transform-style: preserve-3d;
+            transition: transform 0.3s ease;
+        }
+
+        .form-group:hover {
+            transform: translateZ(20px);
+        }
+
+        label {
+            display: block;
+            margin-bottom: 0.8rem;
+            font-weight: 600;
+            color: var(--text);
+            transition: all 0.3s ease;
+            position: relative;
+        }
+
+        label::after {
+            position: absolute;
+            margin-left: 8px;
+        }
+
+        #nama-label::after { content: "👤"; }
+        #kategori-label::after { content: "🏷️"; }
+        #latitude-label::after { content: "🌍"; }
+        #longitude-label::after { content: "🌎"; }
+        #deskripsi-label::after { content: "📝"; }
+        #gambar-label::after { content: "🖼️"; }
+
+        input, textarea {
+            width: 100%;
+            padding: 14px;
+            border: 2px solid #e2e8f0;
+            border-radius: 12px;
+            font-size: 1rem;
+            transition: all 0.3s ease;
+            background: white;
+        }
+
+        input:focus, textarea:focus {
+            border-color: var(--accent);
+            outline: none;
+            box-shadow: 
+                0 0 0 3px rgba(59, 130, 246, 0.2),
+                0 10px 20px rgba(0,0,0,0.1);
+            transform: translateY(-2px);
+        }
+
+        textarea {
+            resize: vertical;
+            min-height: 120px;
+        }
+
+        .btn-container {
+            display: flex;
+            gap: 15px;
+            margin-top: 2.5rem;
+        }
+
+        .btn {
+            flex: 1;
+            padding: 14px 28px;
+            border: none;
+            border-radius: 12px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            text-align: center;
+            text-decoration: none;
+            position: relative;
+            overflow: hidden;
+            transform-style: preserve-3d;
+        }
+
+        .btn::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(255,255,255,0.1);
+            transform: translateX(-100%);
+            transition: transform 0.3s ease;
+        }
+
+        .btn:hover::before {
+            transform: translateX(0);
+        }
+
+        .btn-primary {
+            background: var(--gradient);
+            color: white;
+            box-shadow: 0 4px 15px rgba(59, 130, 246, 0.3);
+        }
+
+        .btn-primary:hover {
+            transform: translateY(-3px) translateZ(10px);
+            box-shadow: 0 6px 20px rgba(59, 130, 246, 0.4);
+        }
+
+        .btn-secondary {
+            background: #e2e8f0;
+            color: var(--text);
+            box-shadow: 0 4px 15px rgba(0,0,0,0.1);
+        }
+
+        .btn-secondary:hover {
+            transform: translateY(-3px) translateZ(10px);
+            box-shadow: 0 6px 20px rgba(0,0,0,0.15);
+        }
+
+        /* Custom file input styling */
+        input[type="file"] {
+            padding: 10px;
+            background: #f1f5f9;
+            cursor: pointer;
+        }
+
+        input[type="file"]::file-selector-button {
+            padding: 8px 16px;
+            border-radius: 8px;
+            border: none;
+            background: var(--gradient);
+            color: white;
+            cursor: pointer;
+            margin-right: 10px;
+            transition: all 0.3s ease;
+        }
+
+        input[type="file"]::file-selector-button:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 4px 12px rgba(59, 130, 246, 0.2);
+        }
+
+        /* Error animation */
+        @keyframes shake {
+            0%, 100% { transform: translateX(0); }
+            25% { transform: translateX(-10px); }
+            75% { transform: translateX(10px); }
+        }
+
+        .error {
+            animation: shake 0.5s ease-in-out;
+            border-color: var(--danger) !important;
+        }
+    </style>
+</head>
+<body>
+    <div class="form-container">
+        <h1>{{ page_title }}</h1>
+        <form method="POST" enctype="multipart/form-data" id="coordinateForm">
+            {% csrf_token %}
+            <div class="form-group">
+                <label for="nama" id="nama-label">Nama</label>
+                <input type="text" id="nama" name="nama" value="{{ coordinate.nama }}" required>
+            </div>
+
+            <div class="form-group">
+                <label for="kategori" id="kategori-label">Kategori</label>
+                <input type="text" id="kategori" name="kategori" value="{{ coordinate.kategori }}" required>
+            </div>
+
+            <div class="form-group">
+                <label for="latitude" id="latitude-label">Latitude</label>
+                <input type="text" id="latitude" name="latitude" value="{{ coordinate.latitude }}" required>
+            </div>
+
+            <div class="form-group">
+                <label for="longitude" id="longitude-label">Longitude</label>
+                <input type="text" id="longitude" name="longitude" value="{{ coordinate.longitude }}" required>
+            </div>
+
+            <div class="form-group">
+                <label for="deskripsi" id="deskripsi-label">Deskripsi</label>
+                <textarea id="deskripsi" name="deskripsi" required>{{ coordinate.deskripsi }}</textarea>
+            </div>
+
+            <div class="form-group">
+                <label for="gambar" id="gambar-label">Gambar</label>
+                <input type="file" id="gambar" name="gambar">
+            </div>
+
+            <div class="btn-container">
+                <button type="submit" class="btn btn-primary">Simpan ✨</button>
+                <a href="/" class="btn btn-secondary">Batal 🔙</a>
+            </div>
+        </form>
+    </div>
+
+    <script>
+        // Form animation and validation
+        const form = document.getElementById('coordinateForm');
+        const inputs = form.querySelectorAll('input, textarea');
+
+        inputs.forEach(input => {
+            input.addEventListener('focus', function() {
+                this.parentElement.style.transform = 'translateZ(30px)';
+            });
+
+            input.addEventListener('blur', function() {
+                this.parentElement.style.transform = 'translateZ(0)';
+            });
+        });
+
+        form.addEventListener('submit', function(e) {
+            let isValid = true;
+            inputs.forEach(input => {
+                if (input.hasAttribute('required') && !input.value) {
+                    isValid = false;
+                    input.classList.add('error');
+                    setTimeout(() => input.classList.remove('error'), 500);
+                }
+            });
+
+            if (!isValid) {
+                e.preventDefault();
+            }
+        });
+    </script>
+</body>
+</html>

@@ -1,0 +1,392 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>{{ page_title }}</title>
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/animate.css/4.1.1/animate.min.css" rel="stylesheet">
+    <style>
+        :root {
+            --primary: #3b82f6;
+            --secondary: #1d4ed8;
+            --accent: #60a5fa;
+            --success: #22c55e;
+            --danger: #ef4444;
+            --background: #f8fafc;
+            --text: #1e293b;
+            --gradient: linear-gradient(135deg, #3b82f6, #1d4ed8);
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: 'Segoe UI', system-ui, sans-serif;
+        }
+
+        body {
+            background: var(--background);
+            color: var(--text);
+            min-height: 100vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            perspective: 1000px;
+            overflow-x: hidden;
+            padding: 2rem;
+            background: radial-gradient(circle at top right, #dbeafe, var(--background));
+        }
+
+        .edit-container {
+            background: rgba(255, 255, 255, 0.95);
+            padding: 2.5rem;
+            border-radius: 24px;
+            box-shadow: 
+                0 20px 50px rgba(59, 130, 246, 0.2),
+                0 10px 20px rgba(0, 0, 0, 0.1);
+            width: 100%;
+            max-width: 600px;
+            transform-style: preserve-3d;
+            animation: floatIn 1s ease-out;
+            backdrop-filter: blur(10px);
+            border: 1px solid rgba(255, 255, 255, 0.2);
+            position: relative;
+        }
+
+        .emoji-helper {
+            position: absolute;
+            font-size: 2rem;
+            transition: all 0.3s ease;
+            pointer-events: none;
+        }
+
+        h1 {
+            background: var(--gradient);
+            -webkit-background-clip: text;
+            background-clip: text;
+            -webkit-text-fill-color: transparent;
+            font-size: 2.2rem;
+            margin-bottom: 2rem;
+            text-align: center;
+            position: relative;
+        }
+
+        h1::after {
+            content: "✏️";
+            position: absolute;
+            right: -40px;
+            top: 0;
+            animation: wave 2s infinite;
+        }
+
+        .form-group {
+            margin-bottom: 1.8rem;
+            position: relative;
+            transform-style: preserve-3d;
+            transition: all 0.3s ease;
+        }
+
+        .form-group:hover {
+            transform: translateZ(20px);
+        }
+
+        .form-group:hover .emoji-indicator {
+            opacity: 1;
+            transform: translateX(10px);
+        }
+
+        label {
+            display: block;
+            margin-bottom: 0.8rem;
+            font-weight: 600;
+            color: var(--text);
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .emoji-indicator {
+            opacity: 0;
+            transition: all 0.3s ease;
+            font-size: 1.2rem;
+        }
+
+        input, textarea {
+            width: 100%;
+            padding: 1rem;
+            border: 2px solid #e2e8f0;
+            border-radius: 12px;
+            font-size: 1rem;
+            transition: all 0.3s ease;
+            background: white;
+        }
+
+        input:focus, textarea:focus {
+            border-color: var(--accent);
+            outline: none;
+            box-shadow: 
+                0 0 0 3px rgba(59, 130, 246, 0.2),
+                0 10px 20px rgba(0, 0, 0, 0.1);
+            transform: translateY(-2px);
+        }
+
+        textarea {
+            resize: vertical;
+            min-height: 120px;
+        }
+
+        .btn-container {
+            display: flex;
+            gap: 15px;
+            margin-top: 2.5rem;
+        }
+
+        .btn {
+            flex: 1;
+            padding: 1rem 2rem;
+            border: none;
+            border-radius: 12px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            text-align: center;
+            text-decoration: none;
+            position: relative;
+            overflow: hidden;
+            font-size: 1.1rem;
+            transform-style: preserve-3d;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 8px;
+        }
+
+        .btn::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(255, 255, 255, 0.1);
+            transform: translateX(-100%);
+            transition: transform 0.3s ease;
+        }
+
+        .btn:hover::before {
+            transform: translateX(0);
+        }
+
+        .btn-primary {
+            background: var(--gradient);
+            color: white;
+            box-shadow: 0 4px 15px rgba(59, 130, 246, 0.3);
+        }
+
+        .btn-primary:hover {
+            transform: translateY(-3px) translateZ(10px);
+            box-shadow: 0 6px 20px rgba(59, 130, 246, 0.4);
+        }
+
+        .btn-secondary {
+            background: #e2e8f0;
+            color: var(--text);
+            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1);
+        }
+
+        .btn-secondary:hover {
+            transform: translateY(-3px) translateZ(10px);
+            box-shadow: 0 6px 20px rgba(0, 0, 0, 0.15);
+        }
+
+        input[type="file"] {
+            padding: 10px;
+            background: #f1f5f9;
+            cursor: pointer;
+        }
+
+        input[type="file"]::file-selector-button {
+            padding: 8px 16px;
+            border-radius: 8px;
+            border: none;
+            background: var(--gradient);
+            color: white;
+            cursor: pointer;
+            margin-right: 10px;
+            transition: all 0.3s ease;
+        }
+
+        input[type="file"]::file-selector-button:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 4px 12px rgba(59, 130, 246, 0.2);
+        }
+
+        .floating-emoji {
+            position: absolute;
+            font-size: 2rem;
+            pointer-events: none;
+            transition: all 0.5s ease;
+            opacity: 0;
+            z-index: 10;
+        }
+
+        @keyframes floatIn {
+            0% {
+                opacity: 0;
+                transform: translateY(40px) rotateX(10deg);
+            }
+            100% {
+                opacity: 1;
+                transform: translateY(0) rotateX(0);
+            }
+        }
+
+        @keyframes float {
+            0%, 100% { transform: translateY(0); }
+            50% { transform: translateY(-10px); }
+        }
+
+        @keyframes wave {
+            0%, 100% { transform: rotate(0deg); }
+            50% { transform: rotate(15deg); }
+        }
+
+        .success-particle {
+            position: fixed;
+            pointer-events: none;
+            animation: float 1s ease-in forwards;
+        }
+
+        @keyframes float {
+            0% {
+                transform: translateY(0) rotate(0);
+                opacity: 1;
+            }
+            100% {
+                transform: translateY(-100px) rotate(360deg);
+                opacity: 0;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="edit-container">
+        <h1>Edit Data Koordinat</h1>
+        <form method="POST" enctype="multipart/form-data" id="editForm">
+            {% csrf_token %}
+            <div class="form-group" data-emoji="👤">
+                <label for="nama">Nama <span class="emoji-indicator">👤</span></label>
+                <input type="text" id="nama" name="nama" value="{{ row.Nama }}" required>
+            </div>
+
+            <div class="form-group" data-emoji="🏷️">
+                <label for="kategori">Kategori <span class="emoji-indicator">🏷️</span></label>
+                <input type="text" id="kategori" name="kategori" value="{{ row.Kategori }}" required>
+            </div>
+
+            <div class="form-group" data-emoji="📍">
+                <label for="latitude">Latitude <span class="emoji-indicator">📍</span></label>
+                <input type="text" id="latitude" name="latitude" value="{{ row.Latitude }}" required>
+            </div>
+
+            <div class="form-group" data-emoji="🌍">
+                <label for="longitude">Longitude <span class="emoji-indicator">🌍</span></label>
+                <input type="text" id="longitude" name="longitude" value="{{ row.Longitude }}" required>
+            </div>
+
+            <div class="form-group" data-emoji="📝">
+                <label for="deskripsi">Deskripsi <span class="emoji-indicator">📝</span></label>
+                <textarea id="deskripsi" name="deskripsi" required>{{ row.Deskripsi }}</textarea>
+            </div>
+
+            <div class="form-group" data-emoji="🖼️">
+                <label for="gambar">Gambar (Opsional) <span class="emoji-indicator">🖼️</span></label>
+                <input type="file" id="gambar" name="gambar">
+                {% if row.Nama_File_Gambar %}
+                <p>Gambar saat ini:</p>
+                <img src="/media/{{ row.Nama_File_Gambar }}" alt="Gambar saat ini" style="width:200px; border: 1px solid #ccc; margin-top: 10px;">
+                {% endif %}
+            </div>
+
+            <div class="btn-container">
+                <button type="submit" class="btn btn-primary">
+                    <span>Simpan</span>
+                    <span class="btn-emoji">✨</span>
+                </button>
+                <a href="/" class="btn btn-secondary">
+                    <span>Batal</span>
+                    <span class="btn-emoji">↩️</span>
+                </a>
+            </div>
+        </form>
+    </div>
+
+    <script>
+        const form = document.getElementById('editForm');
+        const formGroups = document.querySelectorAll('.form-group');
+        const helper = document.createElement('div');
+        helper.className = 'emoji-helper';
+        document.body.appendChild(helper);
+
+        // Floating emoji helper
+        formGroups.forEach(group => {
+            const input = group.querySelector('input, textarea');
+            const emoji = group.dataset.emoji;
+
+            input.addEventListener('focus', () => {
+                showHelper(emoji, input);
+                group.style.transform = 'translateZ(30px)';
+            });
+
+            input.addEventListener('blur', () => {
+                hideHelper();
+                group.style.transform = 'translateZ(0)';
+            });
+
+            input.addEventListener('input', () => {
+                if (input.value) {
+                    createSuccessParticle('✨', input);
+                }
+            });
+        });
+
+        function showHelper(emoji, input) {
+            const rect = input.getBoundingClientRect();
+            helper.textContent = emoji;
+            helper.style.opacity = '1';
+            helper.style.left = `${rect.right + 20}px`;
+            helper.style.top = `${rect.top}px`;
+        }
+
+        function hideHelper() {
+            helper.style.opacity = '0';
+        }
+
+        // Create success particles
+        function createSuccessParticle(emoji, target) {
+            const particle = document.createElement('div');
+            particle.className = 'success-particle';
+            particle.textContent = emoji;
+            
+            const rect = target.getBoundingClientRect();
+            particle.style.left = `${rect.right - 30}px`;
+            particle.style.top = `${rect.top + rect.height/2}px`;
+            
+            document.body.appendChild(particle);
+            
+            particle.addEventListener('animationend', () => {
+                particle.remove();
+            });
+        }
+
+        // Form submission animation
+        form.addEventListener('submit', (e) => {
+            // Create celebration effect
+            for(let i = 0; i < 15; i++) {
+                setTimeout(() => {
+                    createSuccessParticle(['✨', '🎉', '💫'][Math.floor(Math.random() * 3)], form);
+                }, i * 100);
+            }
+        });
+    </script>
+</body>
+
+</html>
