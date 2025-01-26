@@ -8,8 +8,20 @@ from operator import itemgetter
 from django.conf import settings
 import os
 
-# Path file CSV
+# Path file CSV dan GeoJSON
 CSV_FILE_PATH = 'data/data_titik_pekanbaru.csv'
+GEOJSON_FILE_PATH = 'data/Tampan.json'
+GEOJSON_FILE_PATH = 'data/Payung Sekaki.json'
+GEOJSON_FILE_PATH = 'data/Lima Puluh.json'
+GEOJSON_FILE_PATH = 'data/Marpoyan Damai.json'
+GEOJSON_FILE_PATH = 'data/Pekanbaru Kota.json'
+GEOJSON_FILE_PATH = 'data/Rumbai Pesisir.json'
+GEOJSON_FILE_PATH = 'data/Rumbai.json'
+GEOJSON_FILE_PATH = 'data/Sail.json'
+GEOJSON_FILE_PATH = 'data/Senapelan.json'
+GEOJSON_FILE_PATH = 'data/Sukajadi.json'
+GEOJSON_FILE_PATH = 'data/Bukit Raya.json'
+GEOJSON_FILE_PATH = 'data/Tenayan Raya.json'
 
 
 def map_view(request):
@@ -126,6 +138,61 @@ def map_view(request):
 
         group.add_to(map_pku)
 
+    # Fungsi untuk menentukan warna wilayah berdasarkan distrik
+    def get_color(district):
+        colors = {
+            "Tampan": "#FF5733",  # Merah-oranye
+            "Payung Sekaki": "#33FF57",  # Hijau
+            "Bukit Raya": "#FFC300",  # Kuning
+            "Lima Puluh": "#DAF7A6",  # Hijau pucat
+            "Marpoyan Damai": "#C70039",  # Merah gelap
+            "Pekanbaru Kota": "#900C3F",  # Merah marun
+            "Rumbai Pesisir": "#581845",  # Ungu tua
+            "Rumbai": "#8E44AD",  # Ungu cerah
+            "Sail": "#2980B9",  # Biru cerah
+            "Senapelan": "#1ABC9C",  # Toska
+            "Sukajadi": "#E67E22",  # Oranye terang
+            "Tenayan Raya": "#34495E",  # Abu-abu gelap
+        }
+        return colors.get(district, "#3388FF")  # Default biru jika distrik tidak ditemukan
+
+    # Daftar file GeoJSON
+    geojson_files = [
+        ('data/Tampan.json', "Wilayah Tampan"),
+        ('data/Payung Sekaki.json', "Wilayah Payung Sekaki"),
+        ('data/Bukit Raya.json', "Wilayah Bukit Raya"),
+        ('data/Lima Puluh.json', "Wilayah Lima Puluh"),
+        ('data/Marpoyan Damai.json', "Wilayah Marpoyan Damai"),
+        ('data/Pekanbaru Kota.json', "Wilayah Pekanbaru Kota"),
+        ('data/Rumbai Pesisir.json', "Wilayah Rumbai Pesisir"),
+        ('data/Rumbai.json', "Wilayah Rumbai"),
+        ('data/Sail.json', "Wilayah Sail"),
+        ('data/Senapelan.json', "Wilayah Senapelan"),
+        ('data/Sukajadi.json', "Wilayah Sukajadi"),
+        ('data/Tenayan Raya.json', "Wilayah Tenayan Raya"),
+    ]
+
+    # Menambahkan Setiap GeoJSON ke Layer
+    for file_path, layer_name in geojson_files:
+        try:
+            with open(file_path, 'r', encoding='utf-8') as f:
+                geojson_data = f.read()
+            geojson_layer = folium.FeatureGroup(name=layer_name)
+            folium.GeoJson(
+                geojson_data,
+                name=f"{layer_name} Layer",
+                style_function=lambda feature: {
+                    'fillColor': get_color(feature['properties'].get('district', 'Unknown')),
+                    'color': 'black',  # Border hitam
+                    'weight': 0.2,  # Ketebalan border
+                    'fillOpacity': 0.2,  # Transparansi isi
+                },
+                tooltip=folium.GeoJsonTooltip(fields=["province", "district"], aliases=["Province:", "District:"]),
+            ).add_to(geojson_layer)
+            geojson_layer.add_to(map_pku)
+        except FileNotFoundError:
+            print(f"File not found: {file_path}")
+
     # Menambahkan Layer Control
     folium.LayerControl().add_to(map_pku)
 
@@ -136,6 +203,8 @@ def map_view(request):
         'data_grouped': data_grouped,
         'search_query': search_query
     })
+
+
 
 
 
@@ -171,44 +240,36 @@ def add_coordinate(request):
 
         # Membaca Data untuk Menentukan ID Terakhir
         try:
-            # Jika file CSV ditemukan
             data = pd.read_csv(CSV_FILE_PATH)
             data.reset_index(drop=True, inplace=True)
-            if 'ID' not in data.columns or data['ID'].isna().any():  # Tambahkan kolom ID jika tidak ada
+            if 'ID' not in data.columns or data['ID'].isna().any():
                 data['ID'] = range(1, len(data) + 1)
             new_id = int(data['ID'].max()) + 1 if not data.empty else 1
-        except (FileNotFoundError, pd.errors.EmptyDataError):  # Jika file CSV tidak ditemukan atau kosong
-            # Mulai ID dari 1 jika CSV kosong
+        except (FileNotFoundError, pd.errors.EmptyDataError):
             new_id = 1
 
         # Menulis data baru ke file CSV
         with open(CSV_FILE_PATH, 'a', newline='', encoding='utf-8') as file:
             writer = csv.writer(file)
-            # Tambahkan header jika file kosong
             if os.stat(CSV_FILE_PATH).st_size == 0:
                 writer.writerow(['ID', 'Nama', 'Kategori', 'Latitude', 'Longitude', 'Sumber', 'Deskripsi', 'Nama File Gambar'])
-            # Tulis data baru
             writer.writerow([new_id, nama, kategori, latitude, longitude, "Manual Input", deskripsi, gambar_path])
 
         return redirect('map_view')
 
     return render(request, 'map_app/add_coordinate.html')
 
-
 def edit_coordinate(request, id):
     try:
-        # Membaca Data dari CSV
         data = pd.read_csv(CSV_FILE_PATH)
         data.reset_index(drop=True, inplace=True)
     except FileNotFoundError:
         return redirect('map_view')
 
     if request.method == 'POST':
-        # Cari baris dengan ID yang cocok
         row_to_edit = data[data['ID'] == id]
 
         if not row_to_edit.empty:
-            # Update data
             data.loc[data['ID'] == id, 'Nama'] = request.POST.get('nama', '').strip()
             data.loc[data['ID'] == id, 'Kategori'] = request.POST.get('kategori', '').strip()
             try:
@@ -223,15 +284,12 @@ def edit_coordinate(request, id):
 
             data.loc[data['ID'] == id, 'Deskripsi'] = request.POST.get('deskripsi', '').strip()
 
-            # Update gambar jika diunggah
             gambar = request.FILES.get('gambar')
             if gambar:
-                # Hapus gambar lama jika ada
                 gambar_path_old = row_to_edit.iloc[0]['Nama File Gambar']
                 if pd.notna(gambar_path_old) and os.path.exists(os.path.join(settings.MEDIA_ROOT, gambar_path_old)):
                     os.remove(os.path.join(settings.MEDIA_ROOT, gambar_path_old))
 
-                # Simpan gambar baru
                 gambar_path_new = f"images/{gambar.name}"
                 gambar_full_path = os.path.join(settings.MEDIA_ROOT, gambar_path_new)
                 os.makedirs(os.path.dirname(gambar_full_path), exist_ok=True)
@@ -240,47 +298,37 @@ def edit_coordinate(request, id):
                         f.write(chunk)
                 data.loc[data['ID'] == id, 'Nama File Gambar'] = gambar_path_new
 
-            # Simpan kembali data ke file CSV
             data.to_csv(CSV_FILE_PATH, index=False)
 
         return redirect('map_view')
 
-    # Ambil data baris yang akan diedit
     row = data[data['ID'] == id]
     if not row.empty:
         return render(request, 'map_app/edit_coordinate.html', {'row': row.iloc[0].to_dict(), 'id': id})
 
     return redirect('map_view')
 
-
-
 def delete_coordinate(request, id):
     try:
-        # Membaca Data dari CSV
         data = pd.read_csv(CSV_FILE_PATH)
         data.reset_index(drop=True, inplace=True)
     except FileNotFoundError:
         return redirect('map_view')
 
     if request.method == 'POST':
-        # Cari baris dengan ID yang cocok
         row_to_delete = data[data['ID'] == id]
 
         if not row_to_delete.empty:
-            # Hapus file gambar jika ada
             gambar_path = row_to_delete.iloc[0]['Nama File Gambar']
             if pd.notna(gambar_path) and os.path.exists(os.path.join(settings.MEDIA_ROOT, gambar_path)):
                 os.remove(os.path.join(settings.MEDIA_ROOT, gambar_path))
 
-            # Hapus baris dari DataFrame
             data = data[data['ID'] != id]
 
-            # Simpan kembali ke file CSV
             data.to_csv(CSV_FILE_PATH, index=False)
 
         return redirect('map_view')
 
-    # Data baris yang akan dihapus
     row = data[data['ID'] == id]
     if not row.empty:
         return render(request, 'map_app/delete_coordinate.html', {'row': row.iloc[0].to_dict()})
