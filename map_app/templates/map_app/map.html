@@ -487,9 +487,97 @@
                 width: auto;
             }
         }
+
+         /* Add new styles for the navbar */
+         .navbar {
+            background: var(--gradient);
+            padding: 10px 0;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+        }
+
+        .navbar-container {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 0 20px;
+        }
+
+        .navbar-logo {
+            color: white;
+            font-size: 1.5rem;
+            font-weight: bold;
+            text-decoration: none;
+        }
+
+        .navbar-links {
+            display: flex;
+            gap: 20px;
+        }
+
+        .navbar-link {
+            color: white;
+            text-decoration: none;
+            font-weight: 500;
+            transition: all 0.3s ease;
+        }
+
+        .navbar-link:hover {
+            transform: translateY(-2px);
+            text-shadow: 0 2px 4px rgba(0,0,0,0.2);
+        }
+
+        @media (max-width: 768px) {
+            .navbar-container {
+                flex-direction: column;
+                gap: 10px;
+            }
+
+            .navbar-links {
+                flex-wrap: wrap;
+                justify-content: center;
+            }
+        }
+
+        .facility-list-header {
+    position: sticky;
+    top: 0;
+    background: var(--background);
+    z-index: 10;
+    padding: 10px 0;
+    margin-bottom: 10px;
+}
+
+.facility-search {
+    width: 100%;
+    margin-top: 10px;
+    position: sticky;
+    top: 60px;
+    z-index: 10;
+}
+
     </style>
 </head>
 <body>
+    <nav class="navbar">
+        <div class="navbar-container">
+            <a href="/" class="navbar-logo">
+                <i class="fas fa-map-marked-alt"></i> Fasilitas Umum Pekanbaru
+            </a>
+            <div class="navbar-links">
+                <a href="/" class="navbar-link">Home</a>
+                <a href="/about" class="navbar-link">About</a>
+                {% if user_authenticated %}
+                    <a href="{% url 'logout' %}" class="navbar-link">Logout</a>
+                {% else %}
+                    <a href="{% url 'login' %}" class="navbar-link">Login</a>
+                    <a href="{% url 'register' %}" class="navbar-link">Register</a>
+                {% endif %}
+            </div>
+        </div>
+    </nav>
+
     <header class="header">
         <div class="container">
             <h1><i class="fas fa-map-marked-alt"></i> Fasilitas Umum Pekanbaru</h1>
@@ -497,26 +585,21 @@
             <form method="GET" action="" class="search-form">
                 <input type="text" name="search" placeholder="Cari fasilitas atau lokasi..." value="{{ search_query }}" class="search-input">
                 <button type="submit" class="btn btn-primary">
-                    <i class="fas fa-search"></i>
-                    Cari
+                    <i class="fas fa-search"></i> Cari
                 </button>
                 <a href="/" class="btn btn-reset">
-                    <i class="fas fa-undo"></i>
-                    Reset
+                    <i class="fas fa-undo"></i> Reset
                 </a>
             </form>
         </div>
     </header>
 
     <main class="container">
-        <div id="notification" class="notification">
-            <i class="fas fa-check-circle"></i> Perubahan berhasil disimpan!
-        </div>
-
-        <a href="{% url 'add_coordinate' %}" class="btn btn-add">
-            <i class="fas fa-plus-circle"></i>
-            Tambah Koordinat Baru
-        </a>
+        {% if user_authenticated %}
+            <a href="{% url 'add_coordinate' %}" class="btn btn-add">
+                <i class="fas fa-plus-circle"></i> Tambah Koordinat Baru
+            </a>
+        {% endif %}
         
         <div class="map-and-facilities">
             <div id="map">
@@ -524,8 +607,11 @@
             </div>
             
             <section class="facility-list">
-                {% if data_grouped %}
+                <div class="facility-list-header">
                     <h2>Daftar Fasilitas</h2>
+                    <input type="text" id="facilitySearch" placeholder="Cari fasilitas..." class="search-input facility-search">
+                </div>
+                {% if data_grouped %}
                     {% for category, facilities in data_grouped.items %}
                         <div class="category-section">
                             <h3>
@@ -542,14 +628,16 @@
                                                 <span>{{ row.Latitude }}, {{ row.Longitude }}</span>
                                             </small>
                                         </div>
-                                        <div class="facility-actions">
-                                            <a href="{% url 'edit_coordinate' row.ID %}" class="btn-edit" {% if not row.ID %}disabled{% endif %} title="Edit">
-                                                <i class="fas fa-edit"></i>
-                                            </a>
-                                            <a href="{% url 'delete_coordinate' row.ID %}" class="btn-delete" {% if not row.ID %}disabled{% endif %} title="Hapus">
-                                                <i class="fas fa-trash-alt"></i>
-                                            </a>
-                                        </div>
+                                        {% if user_authenticated %}
+                                            <div class="facility-actions">
+                                                <a href="{% url 'edit_coordinate' row.ID %}" class="btn-edit">
+                                                    <i class="fas fa-edit"></i> Edit
+                                                </a>
+                                                <a href="{% url 'delete_coordinate' row.ID %}" class="btn-delete">
+                                                    <i class="fas fa-trash-alt"></i> Hapus
+                                                </a>
+                                            </div>
+                                        {% endif %}
                                     </div>
                                 {% endfor %}
                             </div>
@@ -576,7 +664,26 @@
                 }, 3000);
             }
         });
+
+
+            // Pencarian client-side untuk daftar fasilitas
+    document.getElementById('facilitySearch').addEventListener('input', function(e) {
+        const searchTerm = e.target.value.toLowerCase();
+        
+        document.querySelectorAll('.category-section').forEach(category => {
+            let hasVisibleItems = false;
+            
+            category.querySelectorAll('.facility-item').forEach(item => {
+                const text = item.querySelector('.facility-info').textContent.toLowerCase();
+                const isMatch = text.includes(searchTerm);
+                
+                item.style.display = isMatch ? 'flex' : 'none';
+                if(isMatch) hasVisibleItems = true;
+            });
+            
+            category.style.display = hasVisibleItems ? 'block' : 'none';
+        });
+    });
     </script>
 </body>
 </html>
-

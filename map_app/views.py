@@ -7,6 +7,10 @@ from itertools import groupby
 from operator import itemgetter
 from django.conf import settings
 import os
+from django.contrib.auth.decorators import login_required
+from django.contrib.auth import authenticate, login, logout
+from django.contrib.auth.models import User
+from django.contrib import messages
 
 # Path file CSV dan GeoJSON
 CSV_FILE_PATH = 'data/data_titik_pekanbaru.csv'
@@ -201,13 +205,12 @@ def map_view(request):
     return render(request, 'map_app/map.html', {
         'map': map_html,
         'data_grouped': data_grouped,
-        'search_query': search_query
+        'search_query': search_query,
+        'user_authenticated': request.user.is_authenticated  # Tambahkan ini
     })
 
 
-
-
-
+@login_required
 def add_coordinate(request):
     if request.method == 'POST':
         # Ambil data dari form
@@ -259,6 +262,9 @@ def add_coordinate(request):
 
     return render(request, 'map_app/add_coordinate.html')
 
+
+
+@login_required
 def edit_coordinate(request, id):
     try:
         data = pd.read_csv(CSV_FILE_PATH)
@@ -308,6 +314,9 @@ def edit_coordinate(request, id):
 
     return redirect('map_view')
 
+
+
+@login_required
 def delete_coordinate(request, id):
     try:
         data = pd.read_csv(CSV_FILE_PATH)
@@ -334,3 +343,56 @@ def delete_coordinate(request, id):
         return render(request, 'map_app/delete_coordinate.html', {'row': row.iloc[0].to_dict()})
 
     return redirect('map_view')
+
+
+
+def login_view(request):
+    if request.method == 'POST':
+        username = request.POST.get('username')
+        password = request.POST.get('password')
+        user = authenticate(request, username=username, password=password)
+
+        if user:
+            login(request, user)
+            print(f"User {user.username} berhasil login.")  # Debug
+            return redirect('map_view')
+        else:
+            messages.error(request, 'Username atau password salah!')
+
+    return render(request, 'map_app/login.html')
+
+
+
+
+def logout_view(request):
+    logout(request)
+    return redirect('map_view')
+
+
+
+def register_view(request):
+    if request.method == 'POST':
+        username = request.POST.get('username')
+        email = request.POST.get('email')
+        password = request.POST.get('password')
+        confirm_password = request.POST.get('confirm_password')
+
+        if password != confirm_password:
+            messages.error(request, 'Password tidak cocok!')
+            return redirect('register')
+
+        if User.objects.filter(username=username).exists():
+            messages.error(request, 'Username sudah digunakan!')
+            return redirect('register')
+
+        user = User.objects.create_user(username=username, email=email, password=password)
+        user.save()
+        messages.success(request, 'Akun berhasil dibuat! Silakan login.')
+        return redirect('login')
+
+    return render(request, 'map_app/register.html')
+
+from django.shortcuts import render
+
+def about_pekanbaru(request):
+    return render(request, 'map_app/about.html')
